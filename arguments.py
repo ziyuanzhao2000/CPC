@@ -19,7 +19,7 @@ def parse_args():
     # Training settings
     parser.add_argument('-b', '--batch_size', type=int, default=64)
     parser.add_argument('--learning_rate', type=float, default=5e-4)
-    parser.add_argument('--num_epochs', type=int, default=150)
+    parser.add_argument('--num_epochs', type=int, default=1) # 150 -> 1
     parser.add_argument('--gpu_id', type=str, default='0')
 
     # Dataset to train on
@@ -53,10 +53,14 @@ def parse_args():
 
     # Setting parameters by the dataset
     if args.dataset == 'mobiact':
-        args.input_size = 6
+        args.input_size = 6 # number of dimensions
         args.num_classes = 11
         args.root_dir = 'data'
         args.data_file = 'mobiact.mat'
+    elif args.dataset == 'har':
+        args.input_size = 3 # number of dimensions
+        args.num_classes = 6
+        args.root_dir = 'data'
 
     args.device = torch.device(
         "cuda:" + str(args.gpu_id) if torch.cuda.is_available() else "cpu")

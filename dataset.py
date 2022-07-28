@@ -20,24 +20,38 @@ def opp_sliding_window(data_x, data_y, ws, ss):
 # Defining the data loader for the implementation
 class HARDataset(Dataset):
     def __init__(self, args, phase):
-        self.filename = os.path.join(args.root_dir, args.data_file)
-        print(self.filename)
+        if args.dataset == "mobiact":
+            self.filename = os.path.join(args.root_dir, args.data_file)
+            print(self.filename)
 
-        # If the prepared dataset doesn't exist, give a message and exit
-        if not os.path.isfile(self.filename):
-            print('The data is not available. '
-                  'Ensure that the data is present in the directory.')
-            exit(0)
+            # If the prepared dataset doesn't exist, give a message and exit
+            if not os.path.isfile(self.filename):
+                print('The data is not available. '
+                      'Ensure that the data is present in the directory.')
+                exit(0)
 
-        # Loading the data from the .mat file
-        self.data_raw = self.load_dataset(self.filename)
-        assert args.input_size == self.data_raw[phase]['data'].shape[1]
+            # Loading the data from the .mat file
+            self.data_raw = self.load_dataset(self.filename)
+            assert args.input_size == self.data_raw[phase]['data'].shape[1]
 
-        # Obtaining the segmented data
-        self.data, self.labels = \
-            opp_sliding_window(self.data_raw[phase]['data'],
-                               self.data_raw[phase]['labels'],
-                               args.window, args.overlap)
+            # Obtaining the segmented data
+            self.data, self.labels = \
+                opp_sliding_window(self.data_raw[phase]['data'],
+                                   self.data_raw[phase]['labels'],
+                                   args.window, args.overlap)
+        elif args.dataset in ["har", "sleepEEG"]:
+            if phase == "train":
+                args.data_file = "train.pt"
+            elif phase == "val":
+                args.data_file = "val.pt"
+            elif phase == "test":
+                args.data_file = "test.pt"
+            self.filename = os.path.join(args.root_dir, args.data_file)
+            self.data_raw = torch.load(self.filename)
+            self.data = self.data_raw["samples"].transpose(1,2).numpy()
+            self.labels = self.data_raw["labels"].numpy()
+
+        print(self.data.shape, self.labels.shape)
 
     def load_dataset(self, filename):
         data = loadmat(filename)
